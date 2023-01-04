@@ -1,0 +1,99 @@
+version: '3'
+
+networks:
+  dex-quantitative:
+    driver:
+      bridge
+
+services:
+
+  dev-mysql:
+    hostname: dex-mysql
+    restart: always
+    image: mysql:latest
+    environment:
+      - MYSQL_ROOT_PASSWORD=231510622abc
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_general_ci
+    volumes:
+      - ./mysql/datadir:/var/lib/mysql
+      - ./mysql/conf:/etc/mysql/conf.d
+      - ./mysql/init:/docker-entrypoint-initdb.d
+    ports:
+      - 3306:3306
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - dex-quantitative
+
+  dev-phpmyadmin:
+    hostname: dex-phpmyadmin
+    restart: always
+    image: phpmyadmin
+    ports:
+      - 8888:80
+    environment:
+      - PMA_ARBITRARY=1
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - dex-quantitative
+
+  dev-redis:
+    hostname: dex-redis
+    restart: always
+    build:
+      context: ./
+      dockerfile: redis/Dockerfile
+    ports:
+      - 36379:6379
+    environment:
+      - PATH=$PATH:/usr/local/bin
+    volumes:
+      - ./redis/conf:/usr/local/etc/redis/
+    networks:
+      - dex-quantitative
+
+  dev-haproxy:
+    hostname: dex-haproxy
+    build:
+      context: ./
+      dockerfile: haproxy/Dockerfile
+    environment:
+      - RABBITMQ_DEFAULT_USER=dream 
+      - RABBITMQ_DEFAULT_PASS=231510622abc
+      - PATH=$PATH:/opt/rabbitmq/sbin:/usr/local/bin/:/bin
+    ports:
+      - 5670:5670
+      - 35672:35672
+      - 35674:35674
+      - 9999:9999
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - dex-quantitative
+
+  # dev-node:
+  #   hostname: dex-node
+  #   build:
+  #     context: ./
+  #     dockerfile: node-server/Dockerfile
+  #   volumes:
+  #     - ./build:/opt/build
+  #   ports:
+  #     - 9527:9527
+  #   extra_hosts:
+  #     - host.docker.internal:host-gateway
+  #   networks:
+  #     - dex-quantitative
+
+  # dev-show:
+  #   hostname: dex-show
+  #   build:
+  #     context: ./
+  #     dockerfile: dex-show/Dockerfile
+  #   volumes:
+  #     - ./build:/opt/build
+  #   extra_hosts:
+  #     - host.docker.internal:host-gateway
+  #   networks:
+  #     - dex-quantitative

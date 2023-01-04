@@ -1,0 +1,283 @@
+#!/usr/bin/env node
+import { connect } from "http2";
+import { getHeapSnapshot } from "v8";
+import {
+    WithMysql,
+    ExpressTimerDecorator,
+} from "./Tools"
+class Mysql{
+
+    private static Instance:Mysql;
+
+    private constructor(){
+
+    }
+
+    static getInstance(){
+        if( !Mysql.Instance ){
+            Mysql.Instance = new Mysql();
+        }
+        return Mysql.Instance;
+    }
+
+    @ExpressTimerDecorator()
+    async getData(){
+        const withMysql = new WithMysql();
+        const conn = await withMysql.connectHandle() as any;
+        try{
+            //开启事务
+            await new Promise( (resolve,reject)=>{
+                conn.beginTransaction( (err:any) => err ? reject(err) : resolve("开启事务成功") ); 
+            } )
+            //查询数据
+            const data = await new Promise( (resolve,reject)=>{
+                const sql = `
+                    WITH RECURSIVE t (sp, ep, distance, path) AS 
+                    (SELECT 
+                    a.sp,
+                    a.ep,
+                    a.distance,
+                    CAST(CONCAT(a.sp, ' -> ', a.ep) AS CHAR(100)) AS path 
+                    FROM
+                    dist AS a 
+                    WHERE a.sp = "a"
+
+                    UNION ALL
+
+                    SELECT 
+                    t.sp,
+                    b.ep,
+                    t.distance + b.distance,
+                    CAST(
+                        CONCAT(t.path, ' -> ', b.ep) AS CHAR(100)
+                    ) AS path 
+                    FROM
+                    t 
+                    INNER JOIN dist AS b 
+                        ON b.sp = t.ep )
+                    SELECT * FROM t 
+                `;//where sp = "a" AND ep = "i" order by distance desc
+                conn.query( sql,(err:any, dataList:any[]) => err ? reject(err) : resolve(dataList) )
+            } )
+            //提交事务
+            conn.commit()
+            return data;
+        }catch(err){
+            //回滚事务
+            conn.rollback()
+            return err;
+        }finally{
+            //释放连接
+            conn.release()
+            console.log("查询数据")
+        }
+    }
+
+    @ExpressTimerDecorator()
+    async fibonacci(){
+        const withMysql = new WithMysql();
+        const conn = await withMysql.connectHandle() as any;
+        try{
+            //开启事务
+            await new Promise( (resolve,reject)=>{
+                conn.beginTransaction( (err:any) => err ? reject(err) : resolve("开启事务成功") ); 
+            } )
+            //查询数据
+            const data = await new Promise( (resolve,reject)=>{
+                const sql = `
+                    WITH RECURSIVE feibo(cols,zeroAxios,oneAxios) AS (
+                        SELECT 1,0,1
+                            UNION ALL
+                        SELECT cols+1,oneAxios,zeroAxios+oneAxios FROM feibo WHERE cols < 50
+                    )
+                    SELECT * FROM feibo
+                `;
+                conn.query( sql,(err:any, dataList:any[]) => err ? reject(err) : resolve(dataList) )
+            } )
+            conn.commit();
+            return data;
+        }catch(err){
+            conn.rollback();
+            return err;
+        }finally{
+            conn.release();
+            console.log("斐波那契数列")
+        }
+    }
+
+    @ExpressTimerDecorator()
+    async getDp(){
+        const withMysql = new WithMysql();
+        const conn = await withMysql.connectHandle() as any;
+        try{
+            //开启事务
+            await new Promise( (resolve,reject)=>{
+                conn.beginTransaction( (err:any) => err ? reject(err) : resolve("开启事务成功") ); 
+            } )
+            //查询数据
+            const data = await new Promise( (resolve,reject)=>{
+                const sql = `
+                    WITH RECURSIVE dp(current,prev,sums) AS (
+                        SELECT 1,0,1
+                            UNION ALL
+                        SELECT current+1,sums,sums+current+1 FROM dp WHERE current < 100
+                    )
+                    SELECT * FROM dp
+                `;
+                conn.query( sql,(err:any, dataList:any[]) => err ? reject(err) : resolve(dataList) )
+            } )
+            conn.commit();
+            return data;
+        }catch(err){
+            conn.rollback();
+            return err;
+        }finally{
+            conn.release();
+            console.log("动态规划求和")
+        }
+    }
+
+    @ExpressTimerDecorator()
+    async setDp(){
+        const withMysql = new WithMysql();
+        const conn = await withMysql.connectHandle() as any;
+        try{
+            
+            await new Promise( (resolve,reject)=>{
+                conn.beginTransaction( (err:any) => err ? reject(err) : resolve(0) )
+            } )
+            console.log( "a" )
+            const data = await new Promise( (resolve,reject)=>{
+                const sql = `
+                    WITH RECURSIVE dp( current,prevValue,nextValue ) AS (
+                        SELECT 1,0,1
+                        UNION ALL
+                        SELECT current+1,POWER(current+1,3),POWER(current+1,3)+nextValue FROM dp WHERE current < 100
+                    ) SELECT * FROM dp
+                `
+                conn.query(sql,[],(err:any,dataList:any[])=>err ? reject(err) : resolve(dataList))
+            } )
+            conn.commit();
+            return data;
+        }catch(err){
+            conn.rollback();
+            return err;
+        }finally{
+            conn.release();
+            console.log( "立方和" )
+        }
+    }
+
+    @ExpressTimerDecorator()
+    async setCte(){
+        const withMysql = new WithMysql();
+        const conn = await withMysql.connectHandle() as any;
+        try{
+            await new Promise( (resolve,reject)=>{
+                conn.beginTransaction( (err:any)=> err ? reject(err) : resolve(0) )
+            } )
+            const data = await new Promise( (resolve,reject)=>{
+                const sql = `
+                    explain WITH RECURSIVE cte(current) AS (
+                        SELECT 1
+                        UNION ALL
+                        SELECT current+1 FROM cte WHERE current < 1000
+                    ) SELECT * FROM cte WHERE 1 ORDER BY current DESC LIMIT 20;
+                `
+                conn.query( sql,[],(err:any,dataList:any[])=> err ? reject(err) : resolve(dataList) )
+            } )
+            
+            conn.commit();
+            return data;
+        }catch(err){
+            conn.rollback()
+            return err;
+        }finally{
+            conn.release()
+            console.log( "CTE" )
+        }
+    }
+
+    @ExpressTimerDecorator()
+    async getPath(from:string,to:string){
+        const withMysql = new WithMysql();
+        const conn = await withMysql.connectHandle() as any;
+        try{
+            await new Promise( (resolve,reject)=>{
+                conn.beginTransaction( (err:any)=>err? reject(err) : resolve(0) )
+            } )
+            const fromLower = from.toLowerCase();
+            const toLower = to.toLowerCase()
+            const paramString =[
+                fromLower,
+                toLower,
+                // @ts-ignore
+                REACT_SERVER_CAKE,
+                // @ts-ignore
+                REACT_SERVER_BNB,
+                // @ts-ignore
+                REACT_SERVER_BUSD,
+                // @ts-ignore
+                REACT_SERVER_USDT,
+                // @ts-ignore
+                REACT_SERVER_BBTC,
+            ].join(",");
+            const data = await new Promise( (resolve,reject)=>{
+                //("0xc5e6689c9c8b02be7c49912ef19e79cf24977f03","0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82","0x0e09fabb73bd3ade0a17ecc321fd13a19e81ce82","0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c","0xe9e7cea3dedca5984780bafc599bd69add087d56", "0x55d398326f99059ff775485246999027b3197955", "0x7130d2a12b9bcbfae4f2634d864a1ee1ce3ead9c")
+                const sql = `
+                    WITH RECURSIVE path(token0,token1,distance,router) AS (
+                        SELECT 
+                            token0,token1,1,CONCAT(token0_symbol," -> ",token1_symbol)
+                        FROM test_pairs WHERE token0 = ?
+                        UNION ALL
+                        SELECT
+                            path.token0,
+                            b.token1,
+                            path.distance + 1,
+                            CONCAT( path.router," -> ",b.token1_symbol )
+                        FROM path INNER JOIN test_pairs as b on  path.token1 = b.token0 where path.token0 in (?,?,?,?,?,?,?)
+                    ) select * from path where token1 = ?
+                `
+                // @ts-ignore
+                conn.query( sql,[
+                    fromLower,
+                    fromLower,
+                    toLower,
+                    // @ts-ignore
+                    REACT_SERVER_CAKE,
+                    // @ts-ignore
+                    REACT_SERVER_BNB,
+                    // @ts-ignore
+                    REACT_SERVER_BUSD,
+                    // @ts-ignore
+                    REACT_SERVER_USDT,
+                    // @ts-ignore
+                    REACT_SERVER_BBTC,
+                    toLower
+                ],(err:any,dataList:any[])=>err ? reject(err) : resolve(dataList) )
+            } )
+            conn.commit()
+            return data;
+        }catch(err){
+            conn.rollback();
+            return err;
+        }finally{
+            conn.release()
+            console.log( "最短路径" )
+        }
+    }
+
+}
+
+
+
+;( async()=>{
+    const mysql = Mysql.getInstance();
+    //console.table( await mysql.getData() )
+    //console.table( await mysql.fibonacci() )
+    //console.table( await mysql.getDp() )
+    console.table( await mysql.getPath("0xc5E6689C9c8B02be7C49912Ef19e79cF24977f03","0x0E09FaBB73Bd3Ade0a17ECC321fD13a19e81cE82") )
+    //console.table( await mysql.setDp() )
+    //console.table( await mysql.setCte() )
+    process.exit(0)
+} )()

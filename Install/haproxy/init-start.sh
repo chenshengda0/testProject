@@ -24,6 +24,7 @@ rabbitmqctl stop_app
 echo 3
 rabbitmqctl start_app
 
+service nginx restart
 
 #执行screen
 screen -dmS haproxyServer

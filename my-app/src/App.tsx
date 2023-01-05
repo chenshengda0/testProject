@@ -1,11 +1,17 @@
 import {Component} from "react"
 import {io} from "socket.io-client"
+import Cookies from 'js-cookie'
 
 const AppParentComponent = (SonComponent:any)=>{
     class PackageComponent extends Component<any>{
 
         async UNSAFE_componentWillMount(){
-            const socket = io("http://127.0.0.1:9527")
+            /*
+            {
+                withCredentials: true,
+            }
+            */
+            const socket = io("http://localhost:9527")
             window.socket = socket;
             console.log(socket)
             window.socket.emit("send_message",`客户aaa已登陆`)

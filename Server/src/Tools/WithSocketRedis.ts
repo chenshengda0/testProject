@@ -1,26 +1,26 @@
 #!/usr/bin/env redis
 const {createClient} = require("redis")
 
-class WithRedis{
+class WithSocketRedis{
 
-    private static Instance:WithRedis;
+    private static Instance:WithSocketRedis;
 
     private constructor(){
 
     }
 
     static getInstance(){
-        if( !WithRedis.Instance ){
-            WithRedis.Instance = new WithRedis();
+        if( !WithSocketRedis.Instance ){
+            WithSocketRedis.Instance = new WithSocketRedis();
         }
-        return WithRedis.Instance;
+        return WithSocketRedis.Instance;
     }
 
     connection(){
         try{
             const client = createClient({
                 // @ts-ignore
-                url: REDIS_URL,
+                url: REDIS_SOCKET_URL,
                 // @ts-ignore
                 password: REDIS_AUTH
             })
@@ -34,4 +34,4 @@ class WithRedis{
 
 }
 
-export default WithRedis;
+export default WithSocketRedis;

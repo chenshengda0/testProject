@@ -3,7 +3,7 @@ step=3 #间隔的秒数，不能大于60
 for (( i = 0; i < 60; i=(i+step) )); do
 {
     #交易
-    node /Users/chenshengda/Desktop/project/testProject/Install/build/consumer.js
+    curl http://127.0.0.1:9527
 
 } &
     sleep $step

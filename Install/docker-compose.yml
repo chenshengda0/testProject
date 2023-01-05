@@ -67,33 +67,44 @@ services:
       - 35672:35672
       - 35674:35674
       - 9999:9999
+      - 9527:9527
     extra_hosts:
       - host.docker.internal:host-gateway
     networks:
       - dex-quantitative
 
-  # dev-node:
-  #   hostname: dex-node
-  #   build:
-  #     context: ./
-  #     dockerfile: node-server/Dockerfile
-  #   volumes:
-  #     - ./build:/opt/build
-  #   ports:
-  #     - 9527:9527
-  #   extra_hosts:
-  #     - host.docker.internal:host-gateway
-  #   networks:
-  #     - dex-quantitative
+  dev-show:
+    hostname: dex-show
+    build:
+      context: ./
+      dockerfile: dex-show/Dockerfile
+    volumes:
+      - ./build:/opt/build
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - dex-quantitative
 
-  # dev-show:
-  #   hostname: dex-show
-  #   build:
-  #     context: ./
-  #     dockerfile: dex-show/Dockerfile
-  #   volumes:
-  #     - ./build:/opt/build
-  #   extra_hosts:
-  #     - host.docker.internal:host-gateway
-  #   networks:
-  #     - dex-quantitative
+  dev-show-node1:
+    hostname: dex-show-node1
+    build:
+      context: ./
+      dockerfile: dex-show/Dockerfile
+    volumes:
+      - ./build:/opt/build
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - dex-quantitative
+
+  dev-show-node2:
+    hostname: dex-show-node2
+    build:
+      context: ./
+      dockerfile: dex-show/Dockerfile
+    volumes:
+      - ./build:/opt/build
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - dex-quantitative

@@ -4,6 +4,7 @@ import {
     WithRabbitmq,
     ExpressTimerDecorator,
     Middleware,
+    WithSocketRedis,
 } from "../Tools"
 const router = require("express").Router();
 
@@ -16,7 +17,7 @@ interface ISystem{
 
 class System implements ISystem{
 
-    @ExpressTimerDecorator(1)
+    @ExpressTimerDecorator(0)
     async getAllList(req: any, res: any): Promise<any> {
         const pool = WithMysql.getInstance();
         console.log( pool.config.connectionConfig.clientFlags )
@@ -69,7 +70,14 @@ class System implements ISystem{
                 data: {},
             }
         }
+        //获取redis集合
+        const withRedis = WithSocketRedis.getInstance();
+        const client = withRedis.connection();
         try{
+            client.on('error', (err:any) => {
+                throw new Error(`Redis Client Error: ${err.message}`)
+            });
+            await client.connect()
             //开启事务
             await new Promise( (resolve,reject)=>{
                 conn.beginTransaction( (err:any) => err ? reject(err.message): resolve( "开启事务成功" ) )
@@ -79,6 +87,7 @@ class System implements ISystem{
                 const sql = `SELECT * FROM pornlulu WHERE is_like = 1`;
                 conn.query( sql,[],(err:any,dataList:any[])=>err ? reject(err) : resolve(dataList)  )
             } )
+            global.io.sockets.emit("new_message",{msg: result})
             conn.commit();
             return {
                 code: 200,
@@ -93,6 +102,7 @@ class System implements ISystem{
                 data: {}
             }
         }finally{
+            await client.disconnect();
             conn.release()
             console.log( "获取Like列表" )
         }

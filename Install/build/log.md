@@ -20096,4 +20096,26 @@ eed
 {"code":200,"message":"home page","data":{}}  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                  Dload  Upload   Total   Spent    Left  Speed
   0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100    44  100    44    0     0    376      0 --:--:-- --:--:-- --:--:--   379
-{"code":200,"message":"home page","data":{}}
+{"code":200,"message":"home page","data":{}}  % Tot  % Totaal    % l   Receive % Receid % Xferved % Xfed  Averd  Averrage Spage Speed   Timeeed      Tim Time    e     TimeTime     T  Currentime  Curr
+        ent
+                                            Dlo         ad  Upload     Dload   Total   Upload     Spent   Total   S Lefpent    Let  Speed
+ft  Speed  0     0
+  0       0     0    0    0    0    0        0     0     0     0     0        0 -- 0 --:-:--:-- ---:-- -:--:-- --:--:-- -:--:--  -   0-:--:  0     0 --     0   0       0  0    0       0     0      0 0     0       0 --:  0     0  --:-- --:-    0      -:-- --:--0 --:--:--     0:-- 100    44--:--:-- -  1-:--:-00    44   -     0 0     0100    44     117     100    44   0 --:--   0     0:--     --:--:-- --110      0:--:--   1 --:--:--1 --7
+:--:-- --:{"code":200,"message":"home page","data":{}}--:--   109
+{"code":200,"message":"home page","data":{}}  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100    44  100    44    0     0    372      0 --:--:-- --:--:-- --:--:--   372
+{"code":200,"message":"home page","data":{}}  %  % Total Total        % Rec% Receivedeived % X % Xferd ferd  Ave Average Srage Speepeed   Timed   Time      Time       Time  CTime     Turrent
+   ime  Curr          ent
+                                            Dload  U         Dpload   Toload  Uplotal   Spenad   Total t    Left  Spent     Speed
+   Left  Spe0     0   ed
+ 0     0     0     0  0     0     0     0    0        0     0  0 --:--      0   :   0 --:--:-- --:--:-- --:--:--- --- --:--:--:--:--        0  0  0    0     0   0    0     0         0    0    0    0     0     0      0   0           0 --0 --:--:--:--:-- --:- --:--:-- -:-- --:----:--:--   :--     0  0100    44 100    44 100      100    444    04    0      0    13    0    0      0 -130      0 -:--:-- --:----:--:-- --:-:-- --:--:-:-- --:---   130
+-:--   130
+{"code":200,"message":"home page","data":{}}{"code":200,"message":"home page","data":{}}  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0100    44  100    44    0     0    349      0 --:--:-- --:--:-- --:--:--   349
+{"code":200,"message":"home page","data":{}}  % Tot  % Totalal    % R    % Receeceived % ived % XfXferd  Aveerd  Averrage Speeage Speedd   Time    Time      Time    Time      Time  Cu Time  Currrrent
+    ent
+                                                          Dload  U    Dloadpload   T  Upload otal   Sp  Total ent    L  Spent eft    Left   Speed
+  Speed
+  00     0         0 

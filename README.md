@@ -4,7 +4,7 @@ npx create-react-app my-app --template typescript scripts-version=4.0.3
 ```
 
 # API
-##puppeteer爬取baidu关键词
+## puppeteer爬取baidu关键词，使用socket.io推送最新记录
 ```
 curl http://127.0.0.1:9527/api
 ```

@@ -29,7 +29,7 @@ curl http://127.0.0.1:9527/api/get_recursive
 ```
 
 # 参考文档
-[1.socket.io 聊天室](https://github.com/koolkishan/chat-app-react-nodejs)
-[2.socket.io 官方文档](https://socket.io/zh-CN/docs/v4/)
-[3.socket.io 配置文档](https://socket.gitbook.io/docs/)
-[4.Puppeteer 官方文档](https://pptr.dev/api/)
+1. [socket.io 聊天室](https://github.com/koolkishan/chat-app-react-nodejs)
+2. [socket.io 官方文档](https://socket.io/zh-CN/docs/v4/)
+3. [socket.io 配置文档](https://socket.gitbook.io/docs/)
+4. [Puppeteer 官方文档](https://pptr.dev/api/)

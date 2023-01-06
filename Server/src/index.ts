@@ -7,6 +7,7 @@ import {createServer} from "http"
 import {WithSocketRedis} from "./Tools"
 const app = (require("express"))();
 const bodyParser = require("body-parser");
+const cookie = require("cookie");
 
 /*引入cors*/
 //const cors = require('cors');
@@ -35,16 +36,25 @@ app.use( "/api",SystemRouter )
 //app.use("/publish",PublishRouter);
 const httpServer = createServer( app )
 global.io = new Server(httpServer,{
-    pingTimeout: 6000,
     cors: {
-        origin: "*",
-        credentials: true
+        origin: "http://localhost:3000",
+        credentials: true,
     }
 })
-global.SocketClients = [];
-global.io.on( "connection",function(socket:any){
 
-    socket.on( "disconnect",async function(data:any){
+global.io.use(function (socket:any, next:any) {
+    if( socket.request.headers.cookie ){
+        console.log("中间件")
+        console.log( cookie.parse(socket.request.headers.cookie).userid )
+        console.log( `socketId: ${socket.id}` )
+        next();
+    }else{
+        return next( new Error("Missing cookie headers") )
+    }
+});
+
+global.io.on( "connection",function(socket:any){
+    socket.on( "disconnect",async function(){
         const withRedis = WithSocketRedis.getInstance();
         const client = withRedis.connection();
         try{
@@ -52,8 +62,8 @@ global.io.on( "connection",function(socket:any){
                 throw new Error(`Redis Client Error: ${err.message}`)
             });
             await client.connect()
-            await client.LREM("socket_clients",0,socket.id);
-            console.log( `disconnect:当前在线账户有${await client.LLEN("socket_clients")}人` )
+            await client.HDEL("socket_clients",socket.id );
+            console.log( `disconnect:当前在线账户有${await client.HLEN("socket_clients")}人` )
         }catch(err){
             console.log( err )
         }finally{
@@ -62,7 +72,7 @@ global.io.on( "connection",function(socket:any){
     } )
 
     socket.on("send_message",function(data:any){
-        global.io.sockets.emit("new_message",{msg: data})
+        global.io.sockets.emit("new_message",data)
     })
 
     socket.conn.on("upgrade",async()=>{
@@ -74,9 +84,14 @@ global.io.on( "connection",function(socket:any){
             });
             await client.connect()
             await client.DEL("socket_clients")
-            await client.RPUSH("socket_clients",Array.from( socket.nsp.sockets.keys()) )
-            console.log( `当前在线账户有${await client.LLEN("socket_clients")}人` )
-            //console.log( `当前在线账户有${await client.LLEN("socket_clients")}人` )
+            const param = Array.from( socket.nsp.sockets );
+            const paramArr = [];
+            for( const row in param ){
+                paramArr.push( (param[row] as any[])[0] );
+                paramArr.push( cookie.parse((param[row] as any[])[1].handshake.headers.cookie).userid )
+            }
+            await client.HSET("socket_clients",paramArr )
+            console.log( `当前在线账户有${await client.HLEN("socket_clients")}人` )
         }catch(err){
             console.log( err )
         }finally{

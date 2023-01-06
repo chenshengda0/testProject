@@ -27,7 +27,7 @@ module.exports = {
         //全局变量
         new webpack.DefinePlugin({
             RABBITMQ_PROTOCOL: JSON.stringify("amqp"),
-            RABBITMQ_HOSTNAME: JSON.stringify("dex-haproxy"),
+            RABBITMQ_HOSTNAME: JSON.stringify("127.0.0.1"),
             RABBITMQ_PORT: JSON.stringify(5670),
             RABBITMQ_USERNAME: JSON.stringify("dream"),
             RABBITMQ_PASSWORD: JSON.stringify("231510622abc"),
@@ -36,15 +36,15 @@ module.exports = {
             RABBITMQ_HOST: JSON.stringify("/"),
             
             //MYSQL_HOST: JSON.stringify("dex-mariadb"),
-            MYSQL_HOST: JSON.stringify("dex-mysql"),
+            MYSQL_HOST: JSON.stringify("127.0.0.1"),
             MYSQL_USER: JSON.stringify("root"),//replicater
             MYSQL_PORT: JSON.stringify("3306"),
             MYSQL_PASSWORD: JSON.stringify("231510622abc"),
             MYSQL_DATABASE: JSON.stringify("crawler"),
             MYSQL_CHARSET: JSON.stringify("utf8mb4"),
 
-            REDIS_URL: JSON.stringify("redis://dex-redis:6379/0"),
-            REDIS_SOCKET_URL: JSON.stringify("redis://dex-redis:6379/1"),
+            REDIS_URL: JSON.stringify("redis://127.0.0.1:36379/0"),
+            REDIS_SOCKET_URL: JSON.stringify("redis://127.0.0.1:36379/1"),
             REDIS_AUTH: JSON.stringify("231510622abc"),
             REDIS_MAX_MESSAGES: JSON.stringify(40),
             

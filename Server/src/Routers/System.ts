@@ -557,7 +557,7 @@ class System implements ISystem{
                             g.to_address,
                             cte.distance + g.distance,
                             CAST(CONCAT( cte.path," -> ", g.to_address ) AS CHAR(200) ) AS path
-                        FROM cte INNER JOIN good_path as g ON cte.to_address = g.from_address
+                        FROM cte INNER JOIN good_path as g ON cte.to_address = g.from_address WHERE INSTR(cte.path,g.to_address) <= 0
                     ) SELECT * FROM cte WHERE to_address = "E" ORDER BY distance ASC
                 `
                 conn.query( sql,[],(err:any,dataList:any[]) => err ? reject(err) : resolve(dataList) )

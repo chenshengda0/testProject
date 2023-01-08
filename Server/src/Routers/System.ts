@@ -28,9 +28,134 @@ interface ISystem{
     //获取最短交易路径
     getGoodPair(req:any,res:any):Promise<any>;
 
+    //获取铁路路线
+    getMetro(req:any,res:any):Promise<any>;
+
 }
 
 class System implements ISystem{
+
+    /*
+            const param:any[] = []
+            function backTrance(params:string[],temps:string[],currentIndex:number){
+                if( temps.length == 2 ){
+                    param.push( [...temps] )
+                    return
+                }
+                for( let i = 0; i < params.length;i++ ){
+                    if( i > 0 && params[i] == params[i-1] ) continue;
+                    const temp = params.filter( (row) => row != params[i] );
+                    if( i < currentIndex ) continue;
+                    temps = [...temps,params[i]];
+                    backTrance(temp,temps,i);
+                    temps.pop()
+                }
+            }
+            backTrance(codes,[],0);
+
+            const line = Array.from( {length:11},(_,i) => i+1 )
+            function backTrance( data:number[],temps:number[],currentIndex:number ){
+                if( temps.length == 2 ){
+                    lines.push( [...temps] )
+                    return
+                }
+                for( let i = 0; i < data.length; i++ ){
+                    if( i > 0 && data[i] == data[i-1] ) continue;
+                    if( i < currentIndex ) continue;
+                    const temp = data.filter( (row) => row != data[i] )
+                    temps = [...temps,data[i]]
+                    backTrance( temp,temps,i );
+                    temps.pop()  
+                }
+            }
+            backTrance( line,[],0 )
+    */
+
+    @ExpressTimerDecorator(0)
+    async getMetro(req:any,res:any){
+        const pool = WithMysql.getInstance();
+        console.log( pool.config.connectionConfig.clientFlags )
+        const conn =  await new Promise( (resolve,reject)=> pool.getConnection( (err:any,connection:any)=> err ? resolve(0) : resolve(connection) ) ) as any;
+        if( !conn ){
+            return {
+                code: 400,
+                message: "获取 POOL池 连接失败",
+                data: {},
+            }
+        }
+        try{
+            //开启事务
+            await new Promise( (resolve,reject)=>{
+                conn.beginTransaction( (err:any) => err ? reject(err.message): resolve( "开启事务成功" ) )
+            } )
+            const {
+                from = "沙井",
+                to = "车公庙",
+            } = req.params;
+            const paths = await new Promise( (resolve,reject) => {
+                const sql = `SELECT * FROM sp_metro WHERE (from_address = ? AND to_address = ?) OR (from_address = ? AND to_address = ?)`;
+                conn.query( sql, [
+                    from,
+                    to,
+                    to,
+                    from
+                ],(err:any,dataList:any[])=> err ? reject(err) : resolve(dataList) )
+            } ) as any[];
+            const path = paths[0]["line_path"];
+            console.log( path )
+            const res = await new Promise( (resolve,reject)=>{
+                const sql = `
+                    WITH RECURSIVE cte(
+                        line_number,
+                        from_address,
+                        to_address,
+                        line_path,
+                        address_path,
+                        distance
+                    ) AS (
+                        SELECT
+                            line_number,
+                            from_address,
+                            to_address,
+                            CAST( CONCAT( line_number, " -> ", line_number )  AS CHAR(10000) ),
+                            CAST( CONCAT( " ",from_address, " -> ", to_address  ) AS CHAR(10000) ),
+                            distance
+                        FROM sp_metros WHERE from_address = ?
+                    
+                        UNION ALL
+                    
+                        SELECT 
+                            sp_metros.line_number,
+                            cte.from_address,
+                            sp_metros.to_address,
+                            CAST( CONCAT( cte.line_path, " -> ", sp_metros.line_number) AS CHAR(10000) ),
+                            CAST( CONCAT( cte.address_path, " -> ", sp_metros.to_address, " " ) AS CHAR(10000) ),
+                            cte.distance + sp_metros.distance
+                        FROM cte INNER JOIN sp_metros 
+                        ON cte.to_address = sp_metros.from_address
+                        WHERE INSTR( cte.address_path, CONCAT( " ",sp_metros.to_address," "  ) ) <= 0 AND  INSTR( ?, CONCAT("-",sp_metros.line_number,"-")  ) > 0
+                    ) SELECT * FROM cte WHERE to_address = ? ORDER BY distance ASC
+                `
+                conn.query( sql, [from,path,to],(err:any,dataList:any[]) => err ? reject(err) : resolve(dataList) )
+            } )
+            conn.commit();
+            return {
+                code: 200,
+                message: "SUCCESS",
+                data: res
+            }
+        }catch(err:any){
+            conn.rollback()
+            return {
+                code: 400,
+                message: err.message,
+                data: {}
+            }
+        }finally{
+            conn.release();
+            console.log("获取最短路径")
+        }
+    }
 
     private static async getPairPrice(pair:string,from_address:string,to_address:string){
         try{
@@ -740,6 +865,7 @@ router.get("/get_web3_block", async(req:any,res:any,next:any)=> await middleware
 router.get("/get_hd_block", async(req:any,res:any,next:any)=> await middleware.checkAuth(req,res,next), async(req:any,res:any)=>await consumer.getHDBlockData(req,res) );
 router.get("/get_pair_info/:key", async(req:any,res:any,next:any)=> await middleware.checkAuth(req,res,next), async(req:any,res:any)=>await consumer.getPairInfo(req,res) );
 router.get("/get_good_pair/:search_address", async(req:any,res:any,next:any)=> await middleware.checkAuth(req,res,next), async(req:any,res:any)=>await consumer.getGoodPair(req,res) );
+router.get("/get_metro/:from/:to", async(req:any,res:any,next:any)=> await middleware.checkAuth(req,res,next), async(req:any,res:any)=>await consumer.getMetro(req,res) );
 export default router;
 
 

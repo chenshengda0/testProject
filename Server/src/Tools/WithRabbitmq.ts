@@ -35,24 +35,43 @@ class WithRabbitmq{
         console.log( this.rabbitmqConf )
     }
 
-    //发送消息
-    async publish( keyword:string,msg:any ){
+    async sendSocket(msg: any){
         try{
-            const exchange_name = "amq.topic";
-            const queue_name = `${keyword}_queue`;
+            const exchange_name = "amq.fanout";
             const amqp = await require("amqplib/callback_api");
             //连接器
             const connection = await new Promise( (resolve,reject)=>amqp.connect(this.rabbitmqConf,(err:any,connection:any)=> err ? reject(err) : resolve(connection) ) ) as any;
             //创建通道
             const channel = await new Promise( (resolve,reject)=>connection.createChannel( (err:any,channel:any)=> err ? reject(err) : resolve(channel) ) ) as any;
-            //创建队列
-            await channel.assertQueue(queue_name,{
-                durable: true,      //持久化
-                autoDelete: false,  //自动删除
-                exclusive: false,   //排它
-            })
-            //绑定队列
-            channel.bindQueue( queue_name,exchange_name,keyword );
+            //发送消息
+            channel.publish( exchange_name, "", Buffer.from( JSON.stringify(msg) ) );
+            //关闭连接
+            await new Promise( (resolve,reject)=>{
+                //关闭信道，关闭连接
+                setTimeout( ()=>{
+                    channel.close( () => {
+                        connection.close()
+                    } )
+                    resolve("关闭连接成功")
+                },50 )
+            } )
+            return true;
+        }catch(err:any){
+            throw err;
+        }finally{
+            console.log( "发布消息" )
+        }
+    }
+
+    //发送消息
+    async publish( keyword:string,msg:any ){
+        try{
+            const exchange_name = "amq.topic";
+            const amqp = await require("amqplib/callback_api");
+            //连接器
+            const connection = await new Promise( (resolve,reject)=>amqp.connect(this.rabbitmqConf,(err:any,connection:any)=> err ? reject(err) : resolve(connection) ) ) as any;
+            //创建通道
+            const channel = await new Promise( (resolve,reject)=>connection.createChannel( (err:any,channel:any)=> err ? reject(err) : resolve(channel) ) ) as any;
             //发送消息
             channel.publish( exchange_name, keyword, Buffer.from( JSON.stringify(msg) ) );
             //关闭连接

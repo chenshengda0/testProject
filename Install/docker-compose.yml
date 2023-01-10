@@ -53,58 +53,71 @@ services:
     networks:
       - dex-quantitative
 
-  # dev-haproxy:
-  #   hostname: dex-haproxy
-  #   build:
-  #     context: ./
-  #     dockerfile: haproxy/Dockerfile
-  #   environment:
-  #     - RABBITMQ_DEFAULT_USER=dream 
-  #     - RABBITMQ_DEFAULT_PASS=231510622abc
-  #     - PATH=$PATH:/opt/rabbitmq/sbin:/usr/local/bin/:/bin
-  #   ports:
-  #     - 5670:5670
-  #     - 35672:35672
-  #     - 35674:35674
-  #     - 9999:9999
-  #     - 9527:9527
-  #   extra_hosts:
-  #     - host.docker.internal:host-gateway
-  #   networks:
-  #     - dex-quantitative
+  dev-haproxy:
+    hostname: dex-haproxy
+    restart: always
+    build:
+      context: ./
+      dockerfile: haproxy/Dockerfile
+    environment:
+      - RABBITMQ_DEFAULT_USER=dream 
+      - RABBITMQ_DEFAULT_PASS=231510622abc
+      - PATH=$PATH:/opt/rabbitmq/sbin:/usr/local/bin/:/bin
+    ports:
+      - 5670:5670
+      - 35672:35672
+      - 35674:35674
+      - 9999:9999
+      - 9527:9527
+      - 27149:27149
+    volumes:
+      - ./testLog:/opt/testLog
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    networks:
+      - dex-quantitative
 
-  # dev-show:
-  #   hostname: dex-show
-  #   build:
-  #     context: ./
-  #     dockerfile: dex-show/Dockerfile
-  #   volumes:
-  #     - ./build:/opt/build
-  #   extra_hosts:
-  #     - host.docker.internal:host-gateway
-  #   networks:
-  #     - dex-quantitative
+  dev-show:
+    hostname: dex-show
+    build:
+      context: ./
+      dockerfile: dex-show/Dockerfile
+    volumes:
+      - ./build:/opt/build
+      - ./testLog:/opt/testLog
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      - dev-haproxy
+    networks:
+      - dex-quantitative
 
-  # dev-show-node1:
-  #   hostname: dex-show-node1
-  #   build:
-  #     context: ./
-  #     dockerfile: dex-show/Dockerfile
-  #   volumes:
-  #     - ./build:/opt/build
-  #   extra_hosts:
-  #     - host.docker.internal:host-gateway
-  #   networks:
-  #     - dex-quantitative
+  dev-show-node1:
+    hostname: dex-show-node1
+    build:
+      context: ./
+      dockerfile: dex-show/Dockerfile
+    volumes:
+      - ./build:/opt/build
+      - ./testLog:/opt/testLog
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      - dev-haproxy
+    networks:
+      - dex-quantitative
 
-  # dev-show-node2:
-  #   hostname: dex-show-node2
-  #   build:
-  #     context: ./
-  #     dockerfile: dex-show/Dockerfile
-  #   volumes:
-  #     - ./build:/opt/build
-  #   extra_hosts:
-  #     - host.docker.internal:host-gateway
-  #   networks:
-  #     - dex-quantitative
+  dev-show-node2:
+    hostname: dex-show-node2
+    build:
+      context: ./
+      dockerfile: dex-show/Dockerfile
+    volumes:
+      - ./build:/opt/build
+      - ./testLog:/opt/testLog
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    depends_on:
+      - dev-haproxy
+    networks:
+      - dex-quantitative

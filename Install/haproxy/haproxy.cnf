@@ -24,6 +24,29 @@ listen rabbitmq_stomp
     balance roundrobin
     server dex-haproxy    dex-haproxy:15674     check inter 5000 rise 2 fall 3
 
+listen node_sockets
+    bind 0.0.0.0:27149
+    mode http
+    timeout client 3h
+    timeout server 3h
+    timeout connect 3h
+    balance roundrobin
+    cookie sockets insert nocache
+    server dex-show          dex-show:27149        cookie dex-show        check
+    server dex-show-node1    dex-show-node1:27149  cookie dex-show-node1  check
+    server dex-show-node2    dex-show-node2:27149  cookie dex-show-node2  check
+
+listen node_servers
+    bind 0.0.0.0:9527
+    mode tcp
+    timeout client 3h
+    timeout server 3h
+    timeout connect 3h
+    balance roundrobin
+    server dex-show          dex-show:9527        check  inter 5000 rise 2 fall 3
+    server dex-show-node1    dex-show-node1:9527  check  inter 5000 rise 2 fall 3
+    server dex-show-node2    dex-show-node2:9527  check  inter 5000 rise 2 fall 3
+
 listen private_monitoring
     bind 0.0.0.0:9999
     mode http

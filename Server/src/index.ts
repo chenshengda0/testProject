@@ -1,17 +1,16 @@
 #!/usr/bin/env node
 import {
     SystemRouter,
+    PublishRouter,
+    ConsumerRouter,
 } from "./Routers"
-import {Server} from "socket.io"
 import {createServer} from "http"
-import {WithSocketRedis} from "./Tools"
 const app = (require("express"))();
 const bodyParser = require("body-parser");
-const cookie = require("cookie");
 
 /*引入cors*/
-//const cors = require('cors');
-//app.use(cors());
+const cors = require('cors');
+app.use(cors());
 /*
 app.use((req:any, res:any, next:any) => {
     res.header('Access-Control-Allow-Origin', '*')
@@ -21,7 +20,6 @@ app.use((req:any, res:any, next:any) => {
     next();
 });
 */
-global.SocketClients = new Map()
 app.use( bodyParser.json() );
 app.use( bodyParser.urlencoded({extended: true}) );//application/x-www-form-urlencoded
 app.get('/', (req:any, res:any) => {
@@ -32,74 +30,9 @@ app.get('/', (req:any, res:any) => {
     })
 })
 app.use( "/api",SystemRouter )
-//app.use("/consumer",ConsumerRouter);
-//app.use("/publish",PublishRouter);
+app.use("/consumer",ConsumerRouter);
+app.use("/publish",PublishRouter);
 const httpServer = createServer( app )
-global.io = new Server(httpServer,{
-    cors: {
-        origin: "http://localhost:3000",
-        credentials: true,
-    }
-})
-
-global.io.use(function (socket:any, next:any) {
-    if( socket.request.headers.cookie ){
-        console.log("中间件")
-        console.log( cookie.parse(socket.request.headers.cookie).userid )
-        console.log( `socketId: ${socket.id}` )
-        next();
-    }else{
-        return next( new Error("Missing cookie headers") )
-    }
-});
-
-global.io.on( "connection",function(socket:any){
-    socket.on( "disconnect",async function(){
-        const withRedis = WithSocketRedis.getInstance();
-        const client = withRedis.connection();
-        try{
-            client.on('error', (err:any) => {
-                throw new Error(`Redis Client Error: ${err.message}`)
-            });
-            await client.connect()
-            await client.HDEL("socket_clients",socket.id );
-            console.log( `disconnect:当前在线账户有${await client.HLEN("socket_clients")}人` )
-        }catch(err){
-            console.log( err )
-        }finally{
-            await client.disconnect();
-        }
-    } )
-
-    socket.on("send_message",function(data:any){
-        global.io.sockets.emit("new_message",data)
-    })
-
-    socket.conn.on("upgrade",async()=>{
-        const withRedis = WithSocketRedis.getInstance();
-        const client = withRedis.connection();
-        try{
-            client.on('error', (err:any) => {
-                throw new Error(`Redis Client Error: ${err.message}`)
-            });
-            await client.connect()
-            await client.DEL("socket_clients")
-            const param = Array.from( socket.nsp.sockets );
-            const paramArr = [];
-            for( const row in param ){
-                paramArr.push( (param[row] as any[])[0] );
-                paramArr.push( cookie.parse((param[row] as any[])[1].handshake.headers.cookie).userid )
-            }
-            await client.HSET("socket_clients",paramArr )
-            console.log( `当前在线账户有${await client.HLEN("socket_clients")}人` )
-        }catch(err){
-            console.log( err )
-        }finally{
-            await client.disconnect();
-        }
-    })
-} )
-
 
 httpServer.listen( 9527,()=>{
     console.log( "服务器已启动" )

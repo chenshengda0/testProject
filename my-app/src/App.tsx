@@ -15,7 +15,7 @@ const AppParentComponent = (SonComponent:any)=>{
             if( !Cookies.get( "userid" ) ) {
                 Cookies.set("userid",nanoid(),{path:"/"})
             }
-            const socket = io("http://localhost:9527",{
+            const socket = io("http://localhost:27149",{
                 withCredentials: true,
             })
             window.socket = socket;
